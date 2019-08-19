@@ -1,9 +1,153 @@
 <!DOCTYPE html>
 <html>
   <head>
-    
+    <meta charset="utf-8" />
+    <script src="./Kamra.js"></script>
   </head>
-  <body>
-    This space intentionally left blank
+  <body style="background-color:#AAA;margin:0">
+    <canvas id="canvas" style="margin:auto;background-color:#FFF;display:block">You don't have canvas support! Try switching to a different browser.</canvas>
   </body>
-</html>
+  <script>
+    var canvasEl = document.getElementById("canvas");
+    configure(canvasEl);
+    resize(800, 400);
+    noArrowScroll();
+    strokeCap(ROUND);
+    
+    var GRAVITY = new Vector2(0, 0.5);
+    var RESISTANCE = 0.99;
+    
+    var debugLines = [];
+    var DebugLine = function(one, two) {
+      this.one = one || new Vector2(one.x || 0, one.y || 0);
+      this.two = two || new Vector2(two.x || 0, two.y || 0);
+    };
+    DebugLine.prototype.draw = function() {
+      strokeWeight(3);
+      stroke(255, 0, 0);
+      line(this.one.x, this.one.y, this.two.x, this.two.y);
+    };
+    
+    var PhysicalBody = function(config) {
+      this.nodes = config.nodes || config.mesh || [];
+      this.vel = config.vel || config.velocity || new Vector2(config.vx || 0, config.vy || 0);
+      this.aVel = config.aVel || config.av || 0;
+      
+      this.area = this.getArea();
+      this.center = this.getCenter();
+      
+      this.density = config.density || config.d || 1;
+      this.mass = this.area * this.density;
+      this.moment = this.getMoment();
+    };
+    PhysicalBody.prototype.rotateAbout = function(theta, focus) {
+      for(var i = 0; i < this.nodes.length; i++) {
+        var oldNode = this.nodes[i];
+        this.nodes[i] = Vector2.add(Vector2.rotate(Vector2.sub(this.nodes[i], focus), theta), focus);
+      }
+      this.center = Vector2.add(Vector2.rotate(Vector2.sub(this.center, focus), theta), focus);
+    };
+    PhysicalBody.prototype.draw = function() {
+      beginShape();
+      for(var i = 0; i < this.nodes.length; i++) {
+        vertex(this.nodes[i].x, this.nodes[i].y);
+      }
+      endShape();
+    };
+    PhysicalBody.prototype.getArea = function() {
+      var area = 0;
+      for(var i = 0; i < this.nodes.length; i++) {
+        var nextIndex = (i + 1) % this.nodes.length;
+        area += (this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x);
+      }
+      return area/2;
+    };
+    PhysicalBody.prototype.getMoment = function() {
+      var moment = 0;
+      for(var i = 0; i < this.nodes.length; i++) {
+        var nextIndex = (i + 1) % this.nodes.length;
+        
+        var firstNode = this.nodes[i].get();
+        var secondNode = this.nodes[nextIndex].get();
+        
+        var firstTheta = Math.acos(firstNode.x/firstNode.mag());
+        var secondTheta = Math.acos(secondNode.x/secondNode.mag());
+        
+        
+        
+      }
+      return moment;
+    };
+    PhysicalBody.prototype.getCenter = function() {
+      var center = new Vector2(0, 0);
+      for(var i = 0; i < this.nodes.length; i++) {
+        var nextIndex = (i + 1) % this.nodes.length;
+        var cross = this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x;
+        center.x += (this.nodes[i].x + this.nodes[nextIndex].x) * cross;
+        center.y += (this.nodes[i].y + this.nodes[nextIndex].y) * cross;
+      }
+      return Vector2.div(center, 6 * this.area);
+    };
+    PhysicalBody.prototype.move = function(d) {
+      for(var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].add(d);
+      }
+      this.center.add(d);
+    };
+    PhysicalBody.prototype.update = function() {
+      this.vel.mult(RESISTANCE);
+      //this.vel.add(GRAVITY);
+      this.move(this.vel);
+      this.aVel *= RESISTANCE;
+      this.rotateAbout(this.aVel, this.center);
+    };
+    PhysicalBody.prototype.applyImpulse = function(origin, force) {
+      var dif = Vector2.normalize(Vector2.sub(this.center, origin));
+      var velApply = Math.abs(Vector2.dot(Vector2.normalize(force), dif));
+      console.log(velApply)
+      this.vel.add(Vector2.mult(Vector2.div(force, this.mass), velApply));
+      this.aVel += (1 - velApply) * 0.05;
+      
+      debugLines.push(new DebugLine(origin, Vector2.add(origin, Vector2.div(force, this.mass))));
+    };
+    
+    var phys = new PhysicalBody({
+      mesh: [
+        new Vector2(350, 150),
+        new Vector2(450, 150),
+        new Vector2(500, 300),
+        new Vector2(300, 300)
+      ],
+    });
+    
+    phys.applyImpulse(new Vector2(350, 300), new Vector2(0, -120000));
+    
+    var pTime = new Date().getTime();
+    var draw = function() {
+      phys.update();
+      background(255);
+      noStroke();
+      phys.draw();
+      strokeWeight(5);
+      stroke(255, 0, 0);
+      point(phys.center.x, phys.center.y);
+      
+      for(var i = 0; i < debugLines.length; i++) {
+        debugLines[i].draw();
+      }
+      
+      var time = new Date().getTime();
+      if(Math.abs((time - pTime) - 1000/60) > 15) {
+        //console.log(time - pTime);
+      }
+       
+      
+      pTime = time;
+      /*phys.area = phys.getArea();
+      phys.center = phys.getCenter();
+      phys.nodes[3].x = mouseX;
+      phys.nodes[3].y = mouseY;*/
+    };
+    loop(draw);
+	</script>
+</hmtl>
