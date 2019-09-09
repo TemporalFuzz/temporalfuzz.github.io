@@ -62,110 +62,8 @@ var height = 0;
 
 var updateCanvas;
 
-/** Animation **/
-var Animation = function(config, looped) {
-  if(config.transition) {
-    if(!Animation.transitions[config.transition]) {
-      console.warn("Kamra Warning - Invalid animation transition specified. Defaulted to linear.");
-      config.transition = "linear";
-    }
-  }
-  
-  this.duration = config.duration || 1000;
-  this.startTime = new Date().getTime();
-  
-  this.startValue = config.start || 0;
-  this.finalValue = (config.final === 0 ? 0 : (config.end === 0 ? 0 : (config.end || (config.final || 1))));
-  
-  this.transition = config.transition || "linear";
-  
-  this.looped = looped || false;
-};
-
-Animation.transitions = {
-  linear: function(x) { return x; },
-  easeInSine: function(x) { return -Math.sin((x + 1) * Math.PI/2) + 1; },
-  easeOutSine: function(x) { return Math.sin(x * Math.PI/2); },
-  easeInOutSine: function(x) { return Math.sin((x - 0.5) * Math.PI)/2 + 0.5; },
-  easeInQuad: function(x) { return x * x; },
-  easeOutQuad: function(x) { return x * (2 - x); },
-  easeInOutQuad: function(x) { return x < 0.5 ? (2 * x * x) : (-2 * (--x) * x + 1); },
-  easeInCubic: function(x) { return x * x * x; },
-  easeOutCubic: function(x) { x--; return x * x * x + 1; },
-  easeInOutCubic: function(x) { return x < 0.5 ? (4 * x * x * x) : (4 * (--x) * x * x + 1); },
-  easeInQuart: function(x) { return x * x * x * x; },
-  easeOutQuart: function(x) { x--; return -x * x * x * x + 1; },
-  easeInOutQuart: function(x) { return x < 0.5 ? (8 * x * x * x * x) : (8 * (x - 1) * (x - 1) * (x - 1) * (x - 1) + 1); },
-  easeInQuint: function(x) { return x * x * x * x * x; },
-  easeOutQuint: function(x) { x--; return x * x * x * x * x + 1; },
-  easeInOutQuint: function(x) { return x < 0.5 ? (16 * x * x * x * x * x) : (16 * (--x) * x * x * x * x + 1); },
-};
-Animation.getValue = function(data) {
-  var now = new Date().getTime();
-  var startTime = data.startTime;
-  var duration = data.duration;
-  
-  var startValue = data.startValue;
-  var endValue = data.finalValue;
-  
-  var stage;
-  
-  if(data.looped) {
-    stage = Animation.transitions[data.transition](
-      ((now - startTime)/duration) % 1
-    );
-  }
-  else {
-    stage = Animation.transitions[data.transition](
-      ((now - startTime)/duration)
-    );
-    
-    if(stage < 0) return startValue;
-    if(stage > 1) return finalValue;
-  }
-  
-  return (startValue + (endValue - startValue) * stage);
-};
-Animation.prototype.getValue = function() {
-  return Animation.getValue(this);
-};
-Animation.prototype.isExpired = function() {
-  return ((new Date().getTime() - this.startTime) >= this.duration);
-};
-
-/** AnimationSet **/
-var AnimationSet = function(info, looped) {
-  this.animInfo = info.slice();
-  
-  this.looped = looped || false;
-  
-  if(this.looped) {
-    this.animInfoBackup = this.animInfo.slice();
-  }
-  
-  this.currentAnimation = new Animation(this.animInfo.shift());
-};
-AnimationSet.prototype.getValue = function() {
-  while(this.currentAnimation.isExpired()) {
-    if(this.animInfo.length !== 0) {
-      this.currentAnimation = new Animation(this.animInfo.shift());
-    } else if (this.looped) {
-      this.animInfo = this.animInfoBackup.slice();
-      this.currentAnimation = new Animation(this.animInfo.shift());
-    }
-  }
-  
-  return this.currentAnimation.getValue();
-};
-AnimationSet.prototype.isExpired = function() {
-  if(this.animInfo.length === 0 && !this.looped) {
-    return this.currentAnimation.isExpired();
-  }
-  return false;
-};
-
 /** Looping Functions **/
-var loop = function(fn) {
+function loop(fn) {
   if(fn) {
     if(Kamra.Loop.interval) {
       clearInterval(Kamra.Loop.interval);
@@ -177,13 +75,13 @@ var loop = function(fn) {
     }, 1000/Kamra.Loop.frameRate);
   }
 };
-var noLoop = function() {
+function noLoop() {
   if(Kamra.Loop.fn) { 
     clearInterval(Kamra.Loop.interval);
     Kamra.Loop.fn = null;
   }
 };
-var frameRate = function(newFrameRate) {
+function frameRate(newFrameRate) {
   Kamra.Loop.frameRate = newFrameRate || 60;
   if(Kamra.Loop.fn) {
     clearInterval(Kamra.Loop.interval);
@@ -193,7 +91,7 @@ var frameRate = function(newFrameRate) {
     }, 1000/Kamra.Loop.frameRate);
   }
 };
-var noArrowScroll = function() {
+function noArrowScroll() {
   window.addEventListener("keydown", function(event) {
     if(event.keyCode === 32 ||
        event.keyCode === 37 ||
@@ -212,6 +110,9 @@ var InterfaceBasic = function(config) {
   
   this.width = config.width || config.w || config.size || 100;
   this.height = config.height || config.h || config.size || 100;
+  
+  this.color = config.color || config.c || { r: 255, g: 255, b: 255, a: 255 };
+  this.meta = config.meta || config.m || {};
 };
 InterfaceBasic.prototype.down = function() {
   return this.mouseOver() && mouseIsPressed;
@@ -229,7 +130,6 @@ InterfaceBasic.prototype.select = function() {
 };
 InterfaceBasic.prototype.display = function() {
   this.select();
-  this.draw();
   if(this.update) this.update();
   if(this.drag) this.drag();
 };
@@ -266,10 +166,10 @@ var RectButton = function(config) {
 };
 RectButton.prototype = Object.create(InterfaceRectBasic.prototype);
 RectButton.prototype.update = function() {
-  if(this.mouseOver()) this.onHover();
-  if(this.down()) this.onHold();
-  if(this.pressed()) this.onPress();
-  if(this.released()) this.onRelease();
+  if(this.mouseOver()) this.onHover(this);
+  if(this.down()) this.onHold(this);
+  if(this.pressed()) this.onPress(this);
+  if(this.released()) this.onRelease(this);
 };
 
 /** Interface Rectangle Dragger Class**/
@@ -319,10 +219,10 @@ var EllipseButton = function(config) {
 };
 EllipseButton.prototype = Object.create(InterfaceEllipseBasic.prototype);
 EllipseButton.prototype.update = function() {
-  if(this.mouseOver()) this.onHover();
-  if(this.down()) this.onHold();
-  if(this.pressed()) this.onPress();
-  if(this.released()) this.onRelease();
+  if(this.mouseOver()) this.onHover(this);
+  if(this.down()) this.onHold(this);
+  if(this.pressed()) this.onPress(this);
+  if(this.released()) this.onRelease(this);
 };
 
 /** Interface Ellipse Dragger Class**/
@@ -497,7 +397,7 @@ function updateCanvas() {
 
 /** DRAW **/
 /** Color Commands**/
-fill = function() {
+function fill() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -524,7 +424,7 @@ fill = function() {
     default: console.warn("Kamra Warning - fill() takes 0 - 4 arguments."); break;
   }
 };
-stroke = function(r, g, b, a) {
+function stroke(r, g, b, a) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -552,13 +452,13 @@ stroke = function(r, g, b, a) {
   }
 };
 
-getFill = function() {
+function getFill() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
   }
   
-  var hexDigitDec = function(digit) {
+  function hexDigitDec(digit) {
     switch(digit.toString().toLowerCase()) {
       case "0": return 0; break;
       case "1": return 1; break;
@@ -606,13 +506,12 @@ getFill = function() {
     };
   }
 };
-getStroke = function() {
+function getStroke() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
   }
-  
-  var hexDigitDec = function(digit) {
+  function hexDigitDec(digit) {
     switch(digit.toString().toLowerCase()) {
       case "0": return 0; break;
       case "1": return 1; break;
@@ -661,7 +560,7 @@ getStroke = function() {
   }
 };
 
-noFill = function() {
+function noFill() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -669,7 +568,7 @@ noFill = function() {
   
   Kamra.Canvas.context.fillStyle = "rgba(0, 0, 0, 0.0)";
 };
-noStroke = function() {
+function noStroke() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -688,7 +587,7 @@ noStroke = function() {
 };
 
 /** Image Commands **/
-get = function(x, y, w, h) {
+function get(x, y, w, h) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -713,7 +612,7 @@ get = function(x, y, w, h) {
   }
 };
 
-image = function(image, x, y, w, h, sx, sy, sw, sh) {
+function image(image, x, y, w, h, sx, sy, sw, sh) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -759,7 +658,7 @@ image = function(image, x, y, w, h, sx, sy, sw, sh) {
   }
 };
 
-pixelArt = function(data, keys, quality) {
+function pixelArt(data, keys, quality) {
   var imageWidth = data[0].length;
   var imageHeight = data.length;
   
@@ -781,7 +680,7 @@ pixelArt = function(data, keys, quality) {
   return newCanvas;
 };
 
-processImages = function(imageSet, onFinish) {
+function processImages(imageSet, onFinish) {
   for(var i in imageSet) {
     imageSet[i] = imageSet[i]();
   }
@@ -789,7 +688,7 @@ processImages = function(imageSet, onFinish) {
 };
 
 /** Transformation Commands **/
-popMatrix = function() {
+function popMatrix() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -826,7 +725,7 @@ popMatrix = function() {
   Kamra.Canvas.context.textBaseline = oldTextBaseline;
   Kamra.Canvas.context.imageSmoothingEnabled = oldSmoothing;
 };
-pushMatrix = function() {
+function pushMatrix() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -839,7 +738,7 @@ pushMatrix = function() {
   
   Kamra.Canvas.context.save();
 };
-resetMatrix = function() {
+function resetMatrix() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -852,7 +751,7 @@ resetMatrix = function() {
   
   Kamra.Canvas.context.setTransform(1, 0, 0, 1, 0, 0);
 };
-rotate = function(t) {
+function rotate(t) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -870,7 +769,7 @@ rotate = function(t) {
   
   Kamra.Canvas.context.rotate(t);
 };
-scale = function(x, y) {
+function scale(x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -888,7 +787,7 @@ scale = function(x, y) {
   
   Kamra.Canvas.context.scale(x, y || x);
 };
-skew = function(x, y) {
+function skew(x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -906,7 +805,7 @@ skew = function(x, y) {
   
   Kamra.Canvas.context.transform(1, x, y || 0, 1, 0, 0);
 };
-translate = function(x, y) {
+function translate(x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -926,7 +825,7 @@ translate = function(x, y) {
 };
 
 /** Draw Setting Commands **/
-loadFont = function(font, onLoad) {
+function loadFont(font, onLoad) {
   var newLink = document.createElement("link");
   
   newLink.rel = "stylesheet";
@@ -936,7 +835,7 @@ loadFont = function(font, onLoad) {
   
   document.head.appendChild(newLink);
 };
-loadFontSet = function(fonts, onFinish) {
+function loadFontSet(fonts, onFinish) {
   var fontsLoaded = 0;
   for(var i = 0; i < fonts.length; i++) {
     var newLink = document.createElement("link");
@@ -955,7 +854,7 @@ loadFontSet = function(fonts, onFinish) {
   }
 };
 
-rectMode = function(newMode) {
+function rectMode(newMode) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -965,7 +864,7 @@ rectMode = function(newMode) {
     Kamra.Draw.rectMode = newMode;
   }
 };
-ellipseMode = function(newMode) {
+function ellipseMode(newMode) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -975,7 +874,7 @@ ellipseMode = function(newMode) {
     Kamra.Draw.ellipseMode = newMode;
   }
 };
-imageMode = function(newMode) {
+function imageMode(newMode) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -985,7 +884,7 @@ imageMode = function(newMode) {
     Kamra.Draw.imageMode = newMode;
   }
 };
-strokeCap = function(newCap) {
+function strokeCap(newCap) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -995,7 +894,7 @@ strokeCap = function(newCap) {
     Kamra.Canvas.context.lineCap = newCap;
   }
 };
-strokeJoin = function(newJoin) {
+function strokeJoin(newJoin) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1005,7 +904,7 @@ strokeJoin = function(newJoin) {
     Kamra.Canvas.context.lineJoin = newJoin;
   }
 };
-strokeWeight = function(strokeWeight) {
+function strokeWeight(strokeWeight) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1022,7 +921,7 @@ strokeWeight = function(strokeWeight) {
   
   Kamra.Canvas.context.lineWidth = toPixels(strokeWeight || 0);
 };
-textAlign = function(newAlign, yAlign) {
+function textAlign(newAlign, yAlign) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1035,7 +934,7 @@ textAlign = function(newAlign, yAlign) {
   Kamra.Canvas.context.textAlign = newAlign || "left";
   if(yAlign) Kamra.Canvas.context.textBaseline = yAlign;
 };
-textFont = function(font, size, variant) {
+function textFont(font, size, variant) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1045,7 +944,7 @@ textFont = function(font, size, variant) {
   
   Kamra.Canvas.context.font = (variant ? (variant + " ") : "") + Math.round(size ? toPixels(size) : parseInt(currentFont[currentFont.length - 2])) + "px " + font;
 };
-textLineSpacing = function(newSpacing) {
+function textLineSpacing(newSpacing) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1057,7 +956,7 @@ textLineSpacing = function(newSpacing) {
   
   Kamra.Draw.textLineSpacing = (newSpacing === 0 ? 0 : (newSpacing || 0.4));
 };
-textSize = function(size) {
+function textSize(size) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1068,7 +967,7 @@ textSize = function(size) {
   Kamra.Canvas.context.font = (currentFont.length === 3 ? (currentFont[0] + " ") : "") + toPixels(Math.round(size)) + "px " + currentFont[currentFont.length - 1];
 };
 
-getRectMode = function() {
+function getRectMode() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1076,7 +975,7 @@ getRectMode = function() {
   
   return Kamra.Draw.rectMode;
 };
-getEllipseMode = function() {
+function getEllipseMode() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1084,7 +983,7 @@ getEllipseMode = function() {
   
   return Kamra.Draw.ellipseMode;
 };
-getImageMode = function() {
+function getImageMode() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1092,7 +991,7 @@ getImageMode = function() {
   
   return Kamra.Draw.imageMode;
 };
-getStrokeCap = function() {
+function getStrokeCap() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1100,7 +999,7 @@ getStrokeCap = function() {
   
   return Kamra.Canvas.context.lineCap;
 };
-getStrokeJoin = function() {
+function getStrokeJoin() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1108,7 +1007,7 @@ getStrokeJoin = function() {
   
   return Kamra.Canvas.context.lineJoin;
 };
-getStrokeWeight = function() {
+function getStrokeWeight() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1116,7 +1015,7 @@ getStrokeWeight = function() {
   
   return toCanvasUnits(Kamra.Canvas.context.lineWidth || 0);
 };
-getTextAlign = function() {
+function getTextAlign() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1128,7 +1027,7 @@ getTextAlign = function() {
   
   return Kamra.Canvas.context.textAlign;
 };
-getTextBaseline = function() {
+function getTextBaseline() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1140,7 +1039,7 @@ getTextBaseline = function() {
   
   return Kamra.Canvas.context.textBaseline;
 };
-getTextFont = function() {
+function getTextFont() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1150,7 +1049,7 @@ getTextFont = function() {
   
   return toCanvasUnits(currentFont[currentFont.length - 1]);
 };
-getTextLineSpacing = function() {
+function getTextLineSpacing() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1162,7 +1061,7 @@ getTextLineSpacing = function() {
   
   return Kamra.Draw.textLineSpacing;
 };
-getTextSize = function(size) {
+function getTextSize(size) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1174,7 +1073,7 @@ getTextSize = function(size) {
 };
 
 /** Shape Commands **/
-background = function(r, g, b, a) {
+function background(r, g, b, a) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1206,7 +1105,7 @@ background = function(r, g, b, a) {
   Kamra.Canvas.context.restore();
 }
 
-beginShape = function() {
+function beginShape() {
   if(Kamra.Draw.shapeOpen) {
     console.warn("Kamra Warning - Cannot reinitialize shape.");
     return;
@@ -1215,7 +1114,7 @@ beginShape = function() {
   Kamra.Canvas.context.beginPath();
   Kamra.Draw.shapeOpen = true;
 };
-endShape = function() {
+function endShape() {
   if(!Kamra.Draw.shapeOpen) {
     console.warn("Kamra Warning - Cannot end nonexistent shape.");
     return;
@@ -1225,7 +1124,7 @@ endShape = function() {
   Kamra.Canvas.context.stroke();
   Kamra.Draw.shapeOpen = false;
 };
-vertex = function(x, y) {
+function vertex(x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1238,7 +1137,7 @@ vertex = function(x, y) {
   
   Kamra.Canvas.context.lineTo(toPixels(x), toPixels(y));
 };
-quadVertex = function(cx, cy, x, y) {
+function quadVertex(cx, cy, x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1251,7 +1150,7 @@ quadVertex = function(cx, cy, x, y) {
   
   Kamra.Canvas.context.quadraticCurveTo(toPixels(cx), toPixels(cy), toPixels(x), toPixels(y));
 };
-bezierVertex = function(cx1, cy1, cx2, cy2, x, y) {
+function bezierVertex(cx1, cy1, cx2, cy2, x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1265,7 +1164,7 @@ bezierVertex = function(cx1, cy1, cx2, cy2, x, y) {
   Kamra.Canvas.context.bezierCurveTo(toPixels(cx1), toPixels(cy1), toPixels(cx2), toPixels(cy2), toPixels(x), toPixels(y));
 };
 
-point = function(x, y) {
+function point(x, y) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1273,6 +1172,15 @@ point = function(x, y) {
   
   if(Kamra.Draw.shapeOpen) {
     console.warn("Kamra Warning - You can't use other shape commands when in shape mode.");
+    return;
+  }
+  
+  if((x.x || x.x === 0) && (x.y || x.y === 0)) {
+    Kamra.Canvas.context.beginPath();
+    Kamra.Canvas.context.moveTo(toPixels(x.x), toPixels(x.y));
+    Kamra.Canvas.context.lineTo(toPixels(x.x), toPixels(x.y));
+    Kamra.Canvas.context.stroke();
+    
     return;
   }
   
@@ -1281,7 +1189,7 @@ point = function(x, y) {
   Kamra.Canvas.context.lineTo(toPixels(x), toPixels(y));
   Kamra.Canvas.context.stroke();
 };
-line = function(x1, y1, x2, y2) {
+function line(x1, y1, x2, y2) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1289,6 +1197,15 @@ line = function(x1, y1, x2, y2) {
   
   if(Kamra.Draw.shapeOpen) {
     console.warn("Kamra Warning - You can't use other shape commands when in shape mode.");
+    return;
+  }
+  
+  if((x1.x || x1.x === 0) && (x1.y || x1.y === 0) && (y1.x || y1.x === 0) && (y1.y || y1.y === 0)) {
+    Kamra.Canvas.context.beginPath();
+    Kamra.Canvas.context.moveTo(toPixels(x1.x), toPixels(x1.y));
+    Kamra.Canvas.context.lineTo(toPixels(y1.x), toPixels(y1.y));
+    Kamra.Canvas.context.stroke();
+    
     return;
   }
   
@@ -1298,7 +1215,7 @@ line = function(x1, y1, x2, y2) {
   Kamra.Canvas.context.stroke();
 };
 
-arc = function(x, y, w, h, start, stop) {
+function arc(x, y, w, h, start, stop) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1344,7 +1261,7 @@ arc = function(x, y, w, h, start, stop) {
   Kamra.Canvas.context.ellipse(realX, realY, realW, realH, 0, start, stop);
   Kamra.Canvas.context.stroke();
 };
-ellipse = function(x, y, w, h) {
+function ellipse(x, y, w, h) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1387,7 +1304,7 @@ ellipse = function(x, y, w, h) {
   Kamra.Canvas.context.fill();
   Kamra.Canvas.context.stroke();
 };
-ellipseSection = function(x, y, w, h, start, stop) {
+function ellipseSection(x, y, w, h, start, stop) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1430,7 +1347,7 @@ ellipseSection = function(x, y, w, h, start, stop) {
   Kamra.Canvas.context.fill();
   Kamra.Canvas.context.stroke();
 };
-poly = function() {
+function poly() {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1451,7 +1368,7 @@ poly = function() {
   Kamra.Canvas.context.fill();
   Kamra.Canvas.context.stroke();
 };
-rect = function(x, y, w, h, tl, tr, br, bl) {
+function rect(x, y, w, h, tl, tr, br, bl) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1516,7 +1433,7 @@ rect = function(x, y, w, h, tl, tr, br, bl) {
   Kamra.Canvas.context.stroke();
 };
 
-text = function(content, x, y) {
+function text(content, x, y, w) {
   if(!Kamra.Canvas.configured) {
     console.warn("Kamra Warning - You must use configure(); before you can draw!");
     return;
@@ -1527,22 +1444,30 @@ text = function(content, x, y) {
     return;
   }
   
+  content = content.toString();
+  
   if(arguments.length === 0 || arguments.length > 3) {
     console.warn("Kamra Warning - text() takes 1 - 3 arguments.");
   }
   
   var size = getTextSize();
+  var splitContent = content.split("\n");
   
-  var enterSplit = content.split("\n");
+  /*if(w && w > 0) {
+    for(var i = 0; i < splitContent.length; i++) {
+      var mn = 0;
+      var mx = splitContent[i].length;
+    }
+  }*/
+    
   
-  var adjust = 0;
+  var xShift = 0;
   if(getTextBaseline().toLowerCase() === "middle") {
-    adjust = -0.5 * (enterSplit.length - 1) * size * (1 + Kamra.Draw.textLineSpacing);
+    xShift = -0.5 * (splitContent.length - 1) * size * (1 + Kamra.Draw.textLineSpacing);
   }
   
-  
-  for(var i = 0; i < enterSplit.length; i++) {
-    Kamra.Canvas.context.fillText(enterSplit[i], toPixels(x || 0), adjust + toPixels(y || 0) + i * size * (1 + Kamra.Draw.textLineSpacing));
+  for(var i = 0; i < splitContent.length; i++) {
+    Kamra.Canvas.context.fillText(splitContent[i], toPixels(x || 0), xShift + toPixels(y || 0) + i * size * (1 + Kamra.Draw.textLineSpacing));
   }
 };
 /** END DRAW **/
@@ -1663,6 +1588,9 @@ Vector2.lerp = function(lerpFrom, lerpTo, lerpStage) {
     lerpFrom.y + (lerpTo.y - lerpFrom.y) * lerpStage
   );
 };
+Vector2.heading = function(toFind) {
+  return Math.atan2(toFind.y, toFind.x);
+};
 Vector2.prototype.mag = function() {
   return Math.sqrt(this.x * this.x + this.y * this.y);
 };
@@ -1689,6 +1617,9 @@ Vector2.prototype.lerp = function(lerpWith, lerpStage) {
     this.x + (lerpWith.x - this.x) * lerpStage,
     this.y + (lerpWith.y - this.y) * lerpStage
   );
+};
+Vector2.prototype.heading = function() {
+  return Math.atan2(this.y, this.x);
 };
 
 Vector2.prototype.toString = function() {
@@ -1898,3 +1829,241 @@ Vector3.prototype.rotateZ = function(theta) {
   return this.set(rx, ry, this.z);
 };
 /** END VECTOR3 **/
+
+/** Animation **/
+var Animation = function(config, looped) {
+  if(config.transition) {
+    if(!Animation.transitions[config.transition]) {
+      console.warn("Kamra Warning - Invalid animation transition specified. Defaulted to linear.");
+      config.transition = "linear";
+    }
+  }
+  
+  this.duration = config.duration || 1000;
+  this.startTime = new Date().getTime();
+  
+  this.startValue = config.start || 0;
+  this.finalValue = (config.final === 0 ? 0 : (config.end === 0 ? 0 : (config.end || (config.final || 1))));
+  
+  this.onFinish = config.onFinish || {};
+  
+  this.transition = config.transition || config.t || "linear";
+  
+  this.looped = looped || false;
+};
+
+Animation.transitions = {
+  linear: function(x) { return x; },
+  easeInSine: function(x) { return -Math.sin((x + 1) * Math.PI/2) + 1; },
+  easeOutSine: function(x) { return Math.sin(x * Math.PI/2); },
+  easeInOutSine: function(x) { return Math.sin((x - 0.5) * Math.PI)/2 + 0.5; },
+  easeInQuad: function(x) { return x * x; },
+  easeOutQuad: function(x) { return x * (2 - x); },
+  easeInOutQuad: function(x) { return x < 0.5 ? (2 * x * x) : (-2 * (--x) * x + 1); },
+  easeInCubic: function(x) { return x * x * x; },
+  easeOutCubic: function(x) { x--; return x * x * x + 1; },
+  easeInOutCubic: function(x) { return x < 0.5 ? (4 * x * x * x) : (4 * (--x) * x * x + 1); },
+  easeInQuart: function(x) { return x * x * x * x; },
+  easeOutQuart: function(x) { x--; return -x * x * x * x + 1; },
+  easeInOutQuart: function(x) { return x < 0.5 ? (8 * x * x * x * x) : (8 * (x - 1) * (x - 1) * (x - 1) * (x - 1) + 1); },
+  easeInQuint: function(x) { return x * x * x * x * x; },
+  easeOutQuint: function(x) { x--; return x * x * x * x * x + 1; },
+  easeInOutQuint: function(x) { return x < 0.5 ? (16 * x * x * x * x * x) : (16 * (--x) * x * x * x * x + 1); },
+};
+Animation.getValue = function(data) {
+  var now = new Date().getTime();
+  var startTime = data.startTime;
+  var duration = data.duration;
+  
+  var startValue = data.startValue;
+  var endValue = data.finalValue;
+  
+  var stage;
+  
+  if(data.looped) {
+    stage = Animation.transitions[data.transition](
+      ((now - startTime)/duration) % 1
+    );
+  }
+  else {
+    stage = Animation.transitions[data.transition](
+      ((now - startTime)/duration)
+    );
+    
+    if(stage < 0) return startValue;
+    if(stage > 1) return finalValue;
+  }
+  
+  return (startValue + (endValue - startValue) * stage);
+};
+Animation.prototype.getValue = function() {
+  return Animation.getValue(this);
+};
+Animation.prototype.isExpired = function() {
+  return ((new Date().getTime() - this.startTime) >= this.duration);
+};
+
+/** AnimationSet **/
+var AnimationSet = function(info, looped) {
+  this.animInfo = info.slice();
+  
+  this.looped = looped || false;
+  
+  if(this.looped) {
+    this.animInfoBackup = this.animInfo.slice();
+  }
+  
+  this.currentAnimation = new Animation(this.animInfo.shift());
+};
+AnimationSet.prototype.getValue = function() {
+  while(this.currentAnimation.isExpired()) {
+    if(this.animInfo.length !== 0) {
+      this.currentAnimation = new Animation(this.animInfo.shift());
+    } else if (this.looped) {
+      this.animInfo = this.animInfoBackup.slice();
+      this.currentAnimation = new Animation(this.animInfo.shift());
+    }
+  }
+  
+  return this.currentAnimation.getValue();
+};
+AnimationSet.prototype.isExpired = function() {
+  if(this.animInfo.length === 0 && !this.looped) {
+    return this.currentAnimation.isExpired();
+  }
+  return false;
+};
+
+/** Mesh2 **/
+function Mesh2(config) {
+  this.nodes = config.nodes || config.mesh || [];
+  this.vel = config.vel || config.velocity || new Vector2(config.vx || 0, config.vy || 0);
+  this.aVel = config.aVel || config.av || 0;
+  
+  this.area = this.getArea();
+  this.center = this.getCenter();
+  
+  this.density = config.density || config.d || 1;
+  this.mass = this.area * this.density;
+  this.moment = this.getMoment();
+};
+//Transformation Functions
+Mesh2.prototype.rotate = function(theta, focus) {
+  for(var i = 0; i < this.nodes.length; i++) {
+    var oldNode = this.nodes[i];
+    this.nodes[i] = Vector2.add(Vector2.rotate(Vector2.sub(this.nodes[i], focus), theta), focus);
+  }
+  this.center = Vector2.add(Vector2.rotate(Vector2.sub(this.center, focus), theta), focus);
+};
+Mesh2.prototype.translate = function(d) {
+  for(var i = 0; i < this.nodes.length; i++) {
+    this.nodes[i].add(d);
+  }
+  this.center.add(d);
+};
+
+//ShapeChange Functions
+Mesh2.prototype.getArea = function() {
+  var area = 0;
+  for(var i = 0; i < this.nodes.length; i++) {
+    var nextIndex = (i + 1) % this.nodes.length;
+    area += (this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x);
+  }
+  return area/2;
+};
+Mesh2.prototype.getCenter = function() {
+  var center = new Vector2(0, 0);
+  for(var i = 0; i < this.nodes.length; i++) {
+    var nextIndex = (i + 1) % this.nodes.length;
+    var cross = this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x;
+    center.x += (this.nodes[i].x + this.nodes[nextIndex].x) * cross;
+    center.y += (this.nodes[i].y + this.nodes[nextIndex].y) * cross;
+  }
+  return Vector2.div(center, 6 * this.area);
+};
+Mesh2.prototype.getMoment = function() {
+  
+};
+
+//Looped Functions
+Mesh2.prototype.draw = function() {
+  beginShape();
+  for(var i = 0; i < this.nodes.length; i++) {
+    vertex(this.nodes[i].x, this.nodes[i].y);
+  }
+  vertex(this.nodes[0].x, this.nodes[0].y);
+  endShape();
+};
+Mesh2.prototype.update = function() {
+  this.vel.mult(RESISTANCE);
+  this.vel.add(GRAVITY);
+  this.translate(this.vel);
+  this.aVel *= RESISTANCE;
+  this.rotate(this.aVel, this.center);
+};
+Mesh2.prototype.display = function() {
+  this.update();
+  this.draw();
+};
+
+//Physical Interaction Functions
+Mesh2.prototype.impulse = function(origin, force) {
+  var dif = Vector2.normalize(Vector2.sub(this.center, origin));
+  var velApply = Math.abs(Vector2.dot(Vector2.normalize(force), dif));
+  console.log(velApply)
+  this.vel.add(Vector2.mult(Vector2.div(Vector2.normalize(Vector2.sub(this.center, origin)), this.mass/force.mag()), velApply));
+  this.aVel += (1 - velApply) * 0.25;
+  
+  debugLines.push(new DebugLine(origin, Vector2.add(origin, Vector2.div(force, this.mass))));
+};
+
+function MeshFace(a, b, c) {
+  
+};
+function Mesh3(config) {
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
