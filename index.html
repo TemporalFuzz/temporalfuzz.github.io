@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <script src="./Kamra.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Bitter&display=swap" rel="stylesheet">
   </head>
-  <body style="background-color:#AAA;margin:0">
+  <body style="background-color:#1496C8;margin:0">
     <canvas id="canvas" style="margin:auto;background-color:#FFF;display:block">You don't have canvas support! Try switching to a different browser.</canvas>
   </body>
   <script>
@@ -13,141 +14,501 @@
     resize(800, 400);
     noArrowScroll();
     strokeCap(ROUND);
+    textAlign(CENTER);
+    textLineSpacing(1.2);
+   
+    var buttonText = [
+      "Family",
+      "Bruh"
+    ];
+   
+    var ui = [
+      new EllipseButton({
+        x: 400,
+        y: 200,
+        w: 110,
+        h: 110,
+        m: {
+          color: { r: 200, g: 40, b: 20, a: 255 },
+          text: "My Chain\nof Being",
+          big: false,
+          textShift: -8,
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 290,
+        y: 200,
+        w: 80,
+        h: 80,
+        m: {
+          color: { r: 40, g: 170, b: 20, a: 255 },
+          text: "Success",
+          textSize: 18,
+          big: false
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 230,
+        y: 140,
+        w: 50,
+        h: 50,
+        m: {
+          color: { r: 50, g: 140, b: 50, a: 255 },
+          text: "Coding",
+          big: false,
+          textSize: 12
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 520,
+        y: 200,
+        w: 100,
+        h: 100,
+        m: {
+          color: { r: 230, g: 150, b: 20, a: 255 },
+          text: "Family",
+          big: false
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 630,
+        y: 200,
+        w: 95,
+        h: 95,
+        m: {
+          color: { r: 230, g: 230, b: 20, a: 255 },
+          text: "Parents",
+          big: false
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 570,
+        y: 100,
+        w: 90,
+        h: 90,
+        m: {
+          color: { r: 210, g: 210, b: 30, a: 255 },
+          text: "Sister",
+          big: false
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 570,
+        y: 280,
+        w: 50,
+        h: 50,
+        m: {
+          color: { r: 200, g: 200, b: 40, a: 255 },
+          text: "Dog",
+          big: false
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 250,
+        y: 280,
+        w: 70,
+        h: 70,
+        m: {
+          color: { r: 0, g: 140, b: 40, a: 255 },
+          text: "School",
+          big: false,
+          textSize: 16
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 440,
+        y: 290,
+        w: 60,
+        h: 60,
+        m: {
+          color: { r: 200, g: 0, b: 160, a: 255 },
+          text: "Social Life",
+          big: false,
+          textSize: 11
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 360,
+        y: 290,
+        w: 60,
+        h: 60,
+        m: {
+          color: { r: 160, g: 0, b: 220, a: 255 },
+          text: "Hobbies",
+          big: false,
+          textSize: 12
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 440,
+        y: 110,
+        w: 60,
+        h: 60,
+        m: {
+          color: { r: 40, g: 40, b: 220, a: 255 },
+          text: "Ideas",
+          big: false,
+          textSize: 12
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 490,
+        y: 350,
+        w: 75,
+        h: 75,
+        m: {
+          color: { r: 170, g: 10, b: 150, a: 255 },
+          text: "Friends",
+          big: false,
+          textSize: 12
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+      new EllipseButton({
+        x: 350,
+        y: 120,
+        w: 50,
+        h: 50,
+        m: {
+          color: { r: 200, g: 60, b: 60, a: 255 },
+          text: "Creativity",
+          big: false,
+          textSize: 10
+        },
+        onPress: function(e) {
+          if(!e.meta.anim && !e.meta.big) {
+            e.meta.anim = new Animation({
+              transition: "easeInOutQuad",
+              start: e.width,
+              end: e.width * 1.4,
+              duration: 200
+            });
+          }
+          for(var i = 0; i < ui.length; i++) {
+            if(ui[i] !== e) {
+              if(ui[i].meta.big && !ui[i].meta.anim) {
+                ui[i].meta.anim = new Animation({
+                  transition: "easeInOutQuad",
+                  start: ui[i].width,
+                  end: ui[i].width / 1.4,
+                  duration: 200,
+                });
+              }
+            }
+          }
+        }
+      }),
+    ];
     
-    var GRAVITY = new Vector2(0, 0.5);
-    var RESISTANCE = 0.99;
-    
-    var debugLines = [];
-    var DebugLine = function(one, two) {
-      this.one = one || new Vector2(one.x || 0, one.y || 0);
-      this.two = two || new Vector2(two.x || 0, two.y || 0);
-    };
-    DebugLine.prototype.draw = function() {
-      strokeWeight(3);
-      stroke(255, 0, 0);
-      line(this.one.x, this.one.y, this.two.x, this.two.y);
-    };
-    
-    var PhysicalBody = function(config) {
-      this.nodes = config.nodes || config.mesh || [];
-      this.vel = config.vel || config.velocity || new Vector2(config.vx || 0, config.vy || 0);
-      this.aVel = config.aVel || config.av || 0;
-      
-      this.area = this.getArea();
-      this.center = this.getCenter();
-      
-      this.density = config.density || config.d || 1;
-      this.mass = this.area * this.density;
-      this.moment = this.getMoment();
-    };
-    PhysicalBody.prototype.rotateAbout = function(theta, focus) {
-      for(var i = 0; i < this.nodes.length; i++) {
-        var oldNode = this.nodes[i];
-        this.nodes[i] = Vector2.add(Vector2.rotate(Vector2.sub(this.nodes[i], focus), theta), focus);
-      }
-      this.center = Vector2.add(Vector2.rotate(Vector2.sub(this.center, focus), theta), focus);
-    };
-    PhysicalBody.prototype.draw = function() {
-      beginShape();
-      for(var i = 0; i < this.nodes.length; i++) {
-        vertex(this.nodes[i].x, this.nodes[i].y);
-      }
-      endShape();
-    };
-    PhysicalBody.prototype.getArea = function() {
-      var area = 0;
-      for(var i = 0; i < this.nodes.length; i++) {
-        var nextIndex = (i + 1) % this.nodes.length;
-        area += (this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x);
-      }
-      return area/2;
-    };
-    PhysicalBody.prototype.getMoment = function() {
-      var moment = 0;
-      for(var i = 0; i < this.nodes.length; i++) {
-        var nextIndex = (i + 1) % this.nodes.length;
-        
-        var firstNode = this.nodes[i].get();
-        var secondNode = this.nodes[nextIndex].get();
-        
-        var firstTheta = Math.acos(firstNode.x/firstNode.mag());
-        var secondTheta = Math.acos(secondNode.x/secondNode.mag());
-        
-        
-        
-      }
-      return moment;
-    };
-    PhysicalBody.prototype.getCenter = function() {
-      var center = new Vector2(0, 0);
-      for(var i = 0; i < this.nodes.length; i++) {
-        var nextIndex = (i + 1) % this.nodes.length;
-        var cross = this.nodes[i].x * this.nodes[nextIndex].y - this.nodes[i].y * this.nodes[nextIndex].x;
-        center.x += (this.nodes[i].x + this.nodes[nextIndex].x) * cross;
-        center.y += (this.nodes[i].y + this.nodes[nextIndex].y) * cross;
-      }
-      return Vector2.div(center, 6 * this.area);
-    };
-    PhysicalBody.prototype.move = function(d) {
-      for(var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].add(d);
-      }
-      this.center.add(d);
-    };
-    PhysicalBody.prototype.update = function() {
-      this.vel.mult(RESISTANCE);
-      //this.vel.add(GRAVITY);
-      this.move(this.vel);
-      this.aVel *= RESISTANCE;
-      this.rotateAbout(this.aVel, this.center);
-    };
-    PhysicalBody.prototype.applyImpulse = function(origin, force) {
-      var dif = Vector2.normalize(Vector2.sub(this.center, origin));
-      var velApply = Math.abs(Vector2.dot(Vector2.normalize(force), dif));
-      console.log(velApply)
-      this.vel.add(Vector2.mult(Vector2.div(force, this.mass), velApply));
-      this.aVel += (1 - velApply) * 0.05;
-      
-      debugLines.push(new DebugLine(origin, Vector2.add(origin, Vector2.div(force, this.mass))));
-    };
-    
-    var phys = new PhysicalBody({
-      mesh: [
-        new Vector2(350, 150),
-        new Vector2(450, 150),
-        new Vector2(500, 300),
-        new Vector2(300, 300)
-      ],
-    });
-    
-    phys.applyImpulse(new Vector2(350, 300), new Vector2(0, -120000));
-    
-    var pTime = new Date().getTime();
+    var network = [
+      [ui[0], ui[1]],
+      [ui[1], ui[2]],
+      [ui[0], ui[3]],
+      [ui[4], ui[3]],
+      [ui[5], ui[3]],
+      [ui[6], ui[3]],
+      [ui[1], ui[7]],
+      [ui[0], ui[8]],
+      [ui[0], ui[9]],
+      [ui[0], ui[10]],
+      [ui[8], ui[11]],
+      [ui[0], ui[12]],
+    ];
+   
     var draw = function() {
-      phys.update();
-      background(255);
-      noStroke();
-      phys.draw();
+      background(20, 150, 200);
+      stroke(170);
       strokeWeight(5);
-      stroke(255, 0, 0);
-      point(phys.center.x, phys.center.y);
       
-      for(var i = 0; i < debugLines.length; i++) {
-        debugLines[i].draw();
+      updateInterface(ui);
+      
+      for(var i = 0; i < network.length; i++) {
+        line(network[i][0].pos.x, network[i][0].pos.y, network[i][1].pos.x, network[i][1].pos.y);
       }
       
-      var time = new Date().getTime();
-      if(Math.abs((time - pTime) - 1000/60) > 15) {
-        //console.log(time - pTime);
+      noStroke();
+      textSize(20);
+      textFont("Bitter");
+      for(var i = 0; i < ui.length; i++) {
+        if(ui[i].meta.anim) {
+          ui[i].width = ui[i].meta.anim.getValue();
+          ui[i].height = ui[i].meta.anim.getValue();
+          if(ui[i].meta.anim.isExpired()) {
+            ui[i].meta.anim = undefined;
+            ui[i].meta.big = !ui[i].meta.big;
+          }
+        }
+        fill(ui[i].meta.color);
+        ui[i].draw();
+        fill(255);
+        textSize(ui[i].meta.textSize ? ui[i].meta.textSize : 20);
+        text(ui[i].meta.text, ui[i].pos.x, ui[i].pos.y + getTextSize() * 0.33 + (ui[i].meta.textShift ? ui[i].meta.textShift : 0));
       }
-       
-      
-      pTime = time;
-      /*phys.area = phys.getArea();
-      phys.center = phys.getCenter();
-      phys.nodes[3].x = mouseX;
-      phys.nodes[3].y = mouseY;*/
     };
+   
     loop(draw);
-	</script>
+</script>
 </hmtl>
